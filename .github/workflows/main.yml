@@ -94,4 +94,4 @@ jobs:
       with:
         to: ${{ env.TELEGRAM_TO }}
         token: ${{ env.TELEGRAM_TOKEN }}
-        message: ? Taski workflow completed successfully! Images pushed to Docker Hub.
+        message: "Taski workflow completed successfully! Images pushed to Docker Hub."
