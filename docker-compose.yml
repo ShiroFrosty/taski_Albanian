@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:13
+    container_name: taski_db
+    restart: always
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: taski_backend
+    restart: always
+    env_file: .env
+    volumes:
+      - static:/app/static
+      - media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn --bind 0.0.0.0:8000 taski_backend.wsgi"
+
+  frontend:
+    build: ./frontend
+    container_name: taski_frontend
+    restart: always
+
+  gateway:
+    build: ./nginx
+    container_name: taski_gateway
+    restart: always
+    ports:
+      - "9001:80"
+    volumes:
+      - static:/static
+      - media:/media
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  pg_data:
+  static:
+  media:
